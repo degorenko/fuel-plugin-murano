@@ -1,0 +1,21 @@
+attributes:
+  metadata:
+    group: 'openstack_services'
+  murano_repo_url:
+    value: "http://storage.apps.openstack.org/"
+    label: "Murano Repository URL"
+    description: ""
+    weight: 10
+    type: "text"
+  murano_cfapi:
+    value: false
+    label: "Install Murano service broker for Cloud Foundry"
+    description: "If selected, Murano service broker will be installed"
+    weight: 20
+    type: "checkbox"
+  murano_glance_artifacts:
+    value: false
+    label: "Enable glance artifact repository"
+    description: "If selected glance artifact repository will be enabled"
+    weight: 30
+    type: "checkbox"
