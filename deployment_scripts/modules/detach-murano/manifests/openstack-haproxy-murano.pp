@@ -1,22 +1,20 @@
 notice('MODULAR: openstack-haproxy-murano.pp')
 
-$murano_hash             = hiera_hash('detach-murano',{})
-$murano_cfapi            = $murano_hash['murano_cfapi']
+$murano_hash        = hiera_hash('murano_hash',{})
+$murano_cfapi_hash  = hiera_hash('murano_cfapi_hash', {})
 $public_ssl_hash    = hiera_hash('public_ssl', {})
 $ssl_hash           = hiera_hash('use_ssl', {})
 
 $public_ssl         = get_ssl_property($ssl_hash, $public_ssl_hash, 'murano', 'public', 'usage', false)
 $public_ssl_path    = get_ssl_property($ssl_hash, $public_ssl_hash, 'murano', 'public', 'path', [''])
-
 $internal_ssl       = get_ssl_property($ssl_hash, {}, 'murano', 'internal', 'usage', false)
 $internal_ssl_path  = get_ssl_property($ssl_hash, {}, 'murano', 'internal', 'path', [''])
 
 $external_lb        = hiera('external_lb', false)
 
 if ($use_murano and !$external_lb) {
-  $murano_address_map  = get_node_to_ipaddr_map_by_network_role(hiera_hash('murano_nodes'), 'murano/api')
-  $server_names        = hiera_array('murano_names', keys($murano_address_map))
-  $ipaddresses         = hiera_array('murano_ipaddresses', values($murano_address_map))
+  $server_names        = murano_hash['murano_nodes']
+  $ipaddresses         = murano_hash['murano_ipaddresses']
   $public_virtual_ip   = hiera('public_vip')
   $internal_virtual_ip = hiera('management_vip')
 

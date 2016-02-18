@@ -1,7 +1,9 @@
 .build
 *.rpm
 *.deb
-deployment_scripts/modules/l23network/ 
-deployment_scripts/modules/murano/
-deployment_scripts/modules/openstack/
-deployment_scripts/modules/osnailyfacter/
+deployment_scripts/modules/l23network
+deployment_scripts/modules/murano
+deployment_scripts/modules/openstack
+deployment_scripts/modules/osnailyfacter
+deployment_scripts/modules/galera
+deployment_scripts/modules/rsyslog

@@ -1,0 +1,18 @@
+deployment/puppet/osnailyfacter/modular/murano/cfapi.pp					
+deployment/puppet/osnailyfacter/modular/murano/murano.pp					
+deployment/puppet/osnailyfacter/modular/murano/murano_post.rb					
+deployment/puppet/osnailyfacter/modular/murano/murano_pre.rb					
+deployment/puppet/osnailyfacter/modular/murano/rabbitmq.pp					
+
+
+deployment/puppet/openstack/manifests/ha/murano.pp					
+deployment/puppet/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-murano.pp					
+deployment/puppet/osnailyfacter/modular/openstack-haproxy/openstack-haproxy-murano_post.rb					
+deployment/puppet/osnailyfacter/modular/openstack-haproxy/openstack-haproxy_post.rb
+deployment/puppet/osnailyfacter/modular/openstack-network/run_neutron_granular_noops.sh
+
+
+# Add support of TLS for Murano
+deployment/puppet/osnailyfacter/modular/ssl/ssl_add_trust_chain.pp
+deployment/puppet/osnailyfacter/modular/ssl/ssl_dns_setup.pp
+deployment/puppet/osnailyfacter/modular/ssl/ssl_keys_saving.pp

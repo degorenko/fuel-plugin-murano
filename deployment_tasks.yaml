@@ -3,19 +3,101 @@
   role: [murano]
   tasks:
     - hiera
+    - setup_repositories
+    - fuel_pkgs
     - globals
+    - tools
+    - logging
+    - netconfig
+    - hosts
   required_for: [deploy_end]
   requires: [deploy_start]
   parameters:
     strategy:
-      type: parallel
+      type: one_by_one
 
 - id: hiera-override
   type: puppet
-  groups: ['/.*/']
-  required_for: [deploy_end]
-  requires: [deploy_start, hiera, netconfig, hosts]
+  groups: ['primary-controller', 'controller', 'murano']
+  required_for: [logging]
+  requires: [globals]
   parameters:
     puppet_manifest: manifests/murano_hiera_override.pp
     puppet_modules: /etc/puppet/modules
-    timeout: 3600
+    timeout: 120
+  # reexecute_on is needed for scale-down operations
+  reexecute_on:
+    - deploy_changes
+
+- id: murano-keystone
+  type: puppet
+  groups: ['primary-controller']
+  required_for: [murano-services]
+  requires: [primary-keystone, keystone]
+  cross-depends:
+    - name: keystone
+  parameters:
+    puppet_manifest: manifests/murano_keystone.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+  # reexecute_on is needed for scale-down operations
+  reexecute_on:
+    - deploy_changes
+
+- id: murano-db
+  type: puppet
+  groups: ['primary-controller']
+  cross-depends:
+    - name: /(primary-)?database/
+  required_for: [murano-services]
+  requires: [primary-database, database]
+  parameters:
+    puppet_manifest: manifests/murano_db.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+  # reexecute_on is needed for scale-down operations
+  reexecute_on:
+    - deploy_changes
+
+- id: update-openrc
+  type: puppet
+  groups: ['primary-controller', 'controller']
+  required_for: [deploy_end]
+  requires: [primary-keystone, keystone]
+  cross-depends:
+    - name: keystone
+  parameters:
+    puppet_manifest: manifests/update_openrc.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 120
+  # reexecute_on is needed for scale-down operations
+  reexecute_on:
+    - deploy_changes
+
+- id: logging-murano
+  type: puppet
+  groups: ['murano']
+  required_for: [deploy_end]
+  requires: [logging]
+  parameters:
+    puppet_manifest: modules/detach-murano/manifests/logging-murano.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+  # reexecute_on is needed for scale-down operations
+  reexecute_on:
+    - deploy_changes
+
+- id: update-glance
+  type: puppet
+  groups: ['primary-controller', 'controller']
+  required_for: [deploy_end]
+  requires: [glance]
+  parameters:
+    puppet_manifest: manifests/update_glance.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
+  # reexecute_on is needed for scale-down operations
+  reexecute_on:
+    - deploy_changes
+  test_post:
+    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/glance/glance_post.rb

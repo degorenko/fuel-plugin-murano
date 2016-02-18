@@ -2,7 +2,7 @@ name: detach-murano
 title: Murano plugin
 version: '1.0.0'
 description: Install Murano applications
-fuel_version: ['8.0']
+fuel_version: ['9.0']
 licenses: ['Apache License Version 2.0']
 authors: ['Denis Egorenko', 'Mirantis']
 homepage: 'https://github.com/openstack/fuel-plugin-murano'
@@ -11,7 +11,7 @@ is_hotpluggable: true
 
 releases:
   - os: ubuntu
-    version: liberty-8.0
+    version: liberty-9.0
     mode: ['ha']
     deployment_scripts_path: deployment_scripts/
     repository_path: repositories/ubuntu
