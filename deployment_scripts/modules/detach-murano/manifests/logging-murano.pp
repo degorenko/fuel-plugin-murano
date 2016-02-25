@@ -1,8 +1,10 @@
 notice('MURANO PLUGIN: logging-murano.pp')
 
+include ::rsyslog::params
+
 file { "${::rsyslog::params::rsyslog_d}53-murano.conf":
   ensure => present,
-  content => template("${module_name}/53-murano.conf.erb"),
+  content => template('detach-murano/53-murano.conf.erb'),
   notify  => Service[$::rsyslog::params::service_name],
 }
 

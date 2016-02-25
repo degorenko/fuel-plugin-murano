@@ -4,22 +4,17 @@ set -eux
 . "$(dirname "$(readlink -f "$0")")"/functions.sh
 
 MURANO_REF="master"
-FUEL_LIB_COMMIT=${MURANO_REF}
+#FUEL_LIB_COMMIT=${MURANO_REF}
 MURANO_TARBALL_URL="https://github.com/openstack/puppet-murano/archive/${MURANO_REF}.tar.gz"
-FUEL_LIB_TARBALL_URL="https://github.com/openstack/fuel-library/archive/${FUEL_LIB_COMMIT}.tar.gz"
-GALERA_TARBALL_URL="https://github.com/michaeltchapman/puppet-galera/archive/0.0.2.tar.gz"
-FIREWALL_TARBALL_URL="https://forge.puppetlabs.com/v3/files/puppetlabs-firewall-1.2.0.tar.gz"
+#FUEL_LIB_TARBALL_URL="https://github.com/openstack/fuel-library/archive/${FUEL_LIB_COMMIT}.tar.gz"
+#FIREWALL_TARBALL_URL="https://forge.puppetlabs.com/v3/files/puppetlabs-firewall-1.2.0.tar.gz"
 
 download_puppet_module "murano" ${MURANO_TARBALL_URL}
-# download_puppet_module "rsyslog" ${RSYSLOG_TARBALL_URL}
-download_puppet_module "galera" ${GALERA_TARBALL_URL}
-download_puppet_module "firewall" ${FIREWALL_TARBALL_URL}
+#download_puppet_module "rsyslog" ${RSYSLOG_TARBALL_URL}
+#download_puppet_module "firewall" ${FIREWALL_TARBALL_URL}
 
 # Extract dependent manifests from fuel-library
-rm -rf "${MODULES_DIR:?}"/{l23network,openstack,osnailyfacter,rsyslog}
-wget -qO- "${FUEL_LIB_TARBALL_URL}" | \
-    tar -C "${MODULES_DIR}" --strip-components=3 -zxvf - \
-    fuel-library-${FUEL_LIB_COMMIT/\//-}/deployment/puppet/{l23network,openstack,osnailyfacter,rsyslog}
-
-# Remove this dead link otherwise fpb fails
-rm -f "${MODULES_DIR:?}"/osnailyfacter/modular/master
+#rm -rf "${MODULES_DIR:?}"/{l23network,openstack,osnailyfacter,rsyslog}
+#wget -qO- "${FUEL_LIB_TARBALL_URL}" | \
+#    tar -C "${MODULES_DIR}" --strip-components=3 -zxvf - \
+#    fuel-library-${FUEL_LIB_COMMIT/\//-}/deployment/puppet/{l23network,openstack,osnailyfacter,rsyslog}

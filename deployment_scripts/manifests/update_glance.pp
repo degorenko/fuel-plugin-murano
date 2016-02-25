@@ -1,7 +1,7 @@
 notice('MURANO PLUGIN: update_glance.pp')
 
 $murano_hash     = hiera_hash('murano_hash', {})
-$murano_plugins  = $murano_hash['murano_glance_artifacts']['plugins']
+$murano_plugins  = $murano_hash['plugins']
 
 if $murano_plugins['glance_artifacts_plugin']['enabled'] {
   package {'murano-glance-artifacts-plugin':

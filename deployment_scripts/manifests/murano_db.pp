@@ -18,9 +18,9 @@ $db_create        = pick($murano_hash['db_create'], $mysql_db_create)
 $db_root_user     = pick($murano_hash['root_user'], $mysql_root_user)
 $db_root_password = pick($murano_hash['root_password'], $mysql_root_password)
 
-$allowed_hosts = [ $node_name, 'localhost', '127.0.0.1', '%' ]
+$allowed_hosts = [ 'localhost', '127.0.0.1', '%' ]
 
-class { 'galera::client':
+class { '::openstack::galera::client':
   custom_setup_class => hiera('mysql_custom_setup_class', 'galera'),
 }
 
@@ -37,7 +37,7 @@ class { 'osnailyfacter::mysql_access':
   db_password => $db_root_password,
 }
 
-Class['galera::client'] ->
+Class['openstack::galera::client'] ->
   Class['osnailyfacter::mysql_access'] ->
     Class['murano::db::mysql']
 

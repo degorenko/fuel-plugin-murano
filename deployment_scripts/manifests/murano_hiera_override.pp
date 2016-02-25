@@ -41,20 +41,24 @@ murano_hash:
   rabbit:
     vhost: "/"
     port: "55572"
-  db_password: <%= murano_db_password %>
-  rabbit_password: <%= murano_rabbit_password %>
-  user_password: <%= murano_user_password %>
-  murano_repo_url: <%= murano_repo_url %>
+  db_password: <%= @murano_db_password %>
+  rabbit_password: <%= @murano_rabbit_password %>
+  user_password: <%= @murano_user_password %>
+  murano_repo_url: <%= @murano_repo_url %>
   plugins:
     glance_artifacts_plugin:
-      enabled: <%= murano_glance_artifacts %>
+      enabled: <%= @murano_glance_artifacts %>
 murano_cfapi_hash:
-  db_password: <%= murano_cfapi_db_password %>
-  rabbit_password: <%= murano_cfapi_rabbit_password %>
-  user_password: <%= murano_cfapi_user_password %>
-  enabled: <%= murano_cfapi_enabled %>
-syslog_log_facility_murano: <%= syslog_log_facility_murano %>
-murano::logging::default_log_levels: <%= default_log_levels %>
+  db_password: <%= @murano_cfapi_db_password %>
+  rabbit_password: <%= @murano_cfapi_rabbit_password %>
+  user_password: <%= @murano_cfapi_user_password %>
+  enabled: <%= @murano_cfapi_enabled %>
+syslog_log_facility_murano: <%= @syslog_log_facility_murano %>
+"murano::logging::default_log_levels":
+<%
+@default_log_levels.each do |k,v|
+%>  <%= k %>: <%= v %>
+<% end -%>
 ')
 
   ###################

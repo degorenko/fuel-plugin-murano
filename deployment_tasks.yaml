@@ -32,13 +32,13 @@
 - id: murano-keystone
   type: puppet
   groups: ['primary-controller']
-  required_for: [murano-services]
+  required_for: [murano-controller-end]
   requires: [primary-keystone, keystone]
   cross-depends:
     - name: keystone
   parameters:
     puppet_manifest: manifests/murano_keystone.pp
-    puppet_modules: /etc/puppet/modules
+    puppet_modules: /etc/puppet/modules:modules
     timeout: 1800
   # reexecute_on is needed for scale-down operations
   reexecute_on:
@@ -49,20 +49,39 @@
   groups: ['primary-controller']
   cross-depends:
     - name: /(primary-)?database/
-  required_for: [murano-services]
+  required_for: [murano-controller-end]
   requires: [primary-database, database]
   parameters:
     puppet_manifest: manifests/murano_db.pp
-    puppet_modules: /etc/puppet/modules
+    puppet_modules: /etc/puppet/modules:modules
     timeout: 1800
   # reexecute_on is needed for scale-down operations
   reexecute_on:
     - deploy_changes
 
+- id: murano-dashboard
+  type: puppet
+  groups: ['primary-controller','controller']
+  required_for: [murano-controller-end]
+  requires: [horizon]
+  parameters:
+    puppet_manifest: manifests/murano_dashboard.pp
+    puppet_modules: /etc/puppet/modules:modules
+    timeout: 1800
+  # reexecute_on is needed for scale-down operations
+  reexecute_on:
+    - deploy_changes
+
+- id: murano-controller-end
+  type: skipped
+  groups: ['primary-controller','controller']
+  required_for: [deploy_end]
+  requires: []
+
 - id: update-openrc
   type: puppet
   groups: ['primary-controller', 'controller']
-  required_for: [deploy_end]
+  required_for: [murano-controller-end]
   requires: [primary-keystone, keystone]
   cross-depends:
     - name: keystone
@@ -90,7 +109,7 @@
 - id: update-glance
   type: puppet
   groups: ['primary-controller', 'controller']
-  required_for: [deploy_end]
+  required_for: [murano-controller-end]
   requires: [glance]
   parameters:
     puppet_manifest: manifests/update_glance.pp
@@ -99,5 +118,47 @@
   # reexecute_on is needed for scale-down operations
   reexecute_on:
     - deploy_changes
-  test_post:
-    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/glance/glance_post.rb
+#  test_post:
+#    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/glance/glance_post.rb
+
+- id: haproxy-murano
+  type: puppet
+  groups: ['primary-controller', 'controller']
+  required_for: [murano-controller-end]
+  requires: [deploy_start, primary-cluster-haproxy, cluster-haproxy]
+  cross-depends:
+    - name: /(primary-)?cluster-haproxy/
+      role: self
+  parameters:
+    puppet_manifest: manifests/murano_haproxy.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 300
+
+- id: murano-services
+  type: puppet
+  groups: ['murano']
+  required_for: [deploy_end]
+  requires: [hosts]
+  cross-depends:
+    - name: murano-controller-end
+  parameters:
+    puppet_manifest: manifests/murano.pp
+    puppet_modules: /etc/puppet/modules:modules
+    timeout: 3600
+#  test_pre:
+#    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/murano/murano_pre.rb
+#  test_post:
+#    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/murano/murano_post.rb
+
+- id: murano-rabbitmq
+  type: puppet
+  groups: ['murano']
+  required_for: [murano-services]
+  cross-depends:
+    - name: /(primary-)?rabbitmq/
+      role: self
+  requires: [hosts]
+  parameters:
+    puppet_manifest: manifests/murano_rabbitmq.pp
+    puppet_modules: /etc/puppet/modules:modules
+    timeout: 1800
