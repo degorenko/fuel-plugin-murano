@@ -24,7 +24,7 @@ $amqp_hosts                 = hiera('amqp_hosts')
 $external_dns               = hiera_hash('external_dns', {})
 $public_ssl_hash            = hiera_hash('public_ssl', {})
 $ssl_hash                   = hiera_hash('use_ssl', {})
-#$primary_controller         = hiera('primary_controller')
+$primary_murano             = roles_include(['primary-murano-node'])
 
 $public_auth_protocol       = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'protocol', 'http')
 $public_auth_address        = get_ssl_property($ssl_hash, $public_ssl_hash, 'keystone', 'public', 'hostname', [$public_ip])
@@ -80,6 +80,7 @@ $repository_url = has_key($murano_settings_hash, 'murano_repo_url') ? {
 tweaks::ubuntu_service_override { ['murano-api', 'murano-engine']:
   package_name => 'murano',
 }
+include ::firewall
 
 firewall { $firewall_rule :
   dport  => $api_bind_port,
@@ -94,8 +95,8 @@ class { 'murano' :
   use_stderr          => $use_stderr,
   log_facility        => $syslog_log_facility_murano,
   database_connection => $db_connection,
-  sync_db             => true,
-  auth_uri            => "${admin_auth_protocol}://${admin_auth_address}:5000/",
+  sync_db             => $primary_murano,
+  auth_uri            => "${internal_auth_protocol}://${internal_auth_address}:5000/",
   admin_user          => $murano_user,
   admin_password      => $murano_hash['user_password'],
   admin_tenant_name   => $tenant,
@@ -135,12 +136,6 @@ if $murano_plugins and $murano_plugins['glance_artifacts_plugin'] and $murano_pl
   murano_config {
     'packages_opts/packages_service': value => 'glance',
   }
-
-  concat::fragment { 'enable_glare':
-    target  => $::murano::params::local_settings_path,
-    content => 'MURANO_USE_GLARE = True',
-    order   => 3,
-  }
 }
 
 $haproxy_stats_url = "http://${management_ip}:10000/;csv"
@@ -173,7 +168,9 @@ $internal_auth_url  = "${internal_auth_protocol}://${internal_auth_address}:5000
 $admin_identity_url = "${admin_auth_protocol}://${admin_auth_address}:35357"
 
 class {'::osnailyfacter::wait_for_keystone_backends':}
-murano::application { 'io.murano' : }
+if $primary_murano {
+  murano::application { 'io.murano' : }
+}
 
 Class['::osnailyfacter::wait_for_keystone_backends'] -> ::Osnailyfacter::Wait_for_backend['murano-api']
 ::Osnailyfacter::Wait_for_backend['murano-api'] -> Murano::Application['io.murano']
@@ -183,5 +180,3 @@ Service['murano-api'] -> Murano::Application['io.murano']
 Firewall[$firewall_rule] -> Class['murano::api']
 Service['murano-api'] -> ::Osnailyfacter::Wait_for_backend['murano-api']
 
-class openstack::firewall {}
-include openstack::firewall

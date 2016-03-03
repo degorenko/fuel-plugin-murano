@@ -12,3 +12,7 @@ deployment/puppet/osnailyfacter/modular/openstack-haproxy/openstack-haproxy_post
 deployment/puppet/osnailyfacter/modular/ssl/ssl_add_trust_chain.pp
 deployment/puppet/osnailyfacter/modular/ssl/ssl_dns_setup.pp
 deployment/puppet/osnailyfacter/modular/ssl/ssl_keys_saving.pp
+
+# Move rsyslog file to rsyslog snippet
+
+# Murano config : murano/url

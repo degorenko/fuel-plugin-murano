@@ -1,7 +1,7 @@
-- id: murano
+- id: primary-murano-node
   type: group
-  role: [murano]
-  tasks:
+  role: [primary-murano-node]
+  tasks: &common_tasks
     - hiera
     - setup_repositories
     - fuel_pkgs
@@ -11,14 +11,24 @@
     - netconfig
     - hosts
   required_for: [deploy_end]
-  requires: [deploy_start]
+  requires: [primary-controller]
   parameters:
     strategy:
       type: one_by_one
 
-- id: hiera-override
+- id: murano-node
+  type: group
+  role: [murano-node]
+  tasks: *common_tasks
+  required_for: [deploy_end]
+  requires: [primary-murano-node]
+  parameters:
+    strategy:
+      type: parallel
+
+- id: hiera-murano-override
   type: puppet
-  groups: ['primary-controller', 'controller', 'murano']
+  groups: ['primary-controller', 'controller', 'primary-murano-node', 'murano-node']
   required_for: [logging]
   requires: [globals]
   parameters:
@@ -29,7 +39,7 @@
   reexecute_on:
     - deploy_changes
 
-- id: murano-keystone
+- id: murano-keystone-endpoints
   type: puppet
   groups: ['primary-controller']
   required_for: [murano-controller-end]
@@ -44,7 +54,7 @@
   reexecute_on:
     - deploy_changes
 
-- id: murano-db
+- id: murano-database
   type: puppet
   groups: ['primary-controller']
   cross-depends:
@@ -78,7 +88,7 @@
   required_for: [deploy_end]
   requires: []
 
-- id: update-openrc
+- id: murano-update-openrc
   type: puppet
   groups: ['primary-controller', 'controller']
   required_for: [murano-controller-end]
@@ -93,20 +103,7 @@
   reexecute_on:
     - deploy_changes
 
-- id: logging-murano
-  type: puppet
-  groups: ['murano']
-  required_for: [deploy_end]
-  requires: [logging]
-  parameters:
-    puppet_manifest: modules/detach-murano/manifests/logging-murano.pp
-    puppet_modules: /etc/puppet/modules
-    timeout: 1800
-  # reexecute_on is needed for scale-down operations
-  reexecute_on:
-    - deploy_changes
-
-- id: update-glance
+- id: murano-update-glance
   type: puppet
   groups: ['primary-controller', 'controller']
   required_for: [murano-controller-end]
@@ -118,10 +115,8 @@
   # reexecute_on is needed for scale-down operations
   reexecute_on:
     - deploy_changes
-#  test_post:
-#    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/glance/glance_post.rb
 
-- id: haproxy-murano
+- id: murano-haproxy
   type: puppet
   groups: ['primary-controller', 'controller']
   required_for: [murano-controller-end]
@@ -133,10 +128,23 @@
     puppet_manifest: manifests/murano_haproxy.pp
     puppet_modules: /etc/puppet/modules
     timeout: 300
+  # reexecute_on is needed for scale-down operations
+  reexecute_on:
+    - deploy_changes
+
+- id: murano-logging
+  type: puppet
+  groups: ['primary-murano-node', 'murano-node']
+  required_for: [murano-services]
+  requires: [logging]
+  parameters:
+    puppet_manifest: manifests/logging-murano.pp
+    puppet_modules: /etc/puppet/modules
+    timeout: 1800
 
 - id: murano-services
   type: puppet
-  groups: ['murano']
+  groups: ['primary-murano-node', 'murano-node']
   required_for: [deploy_end]
   requires: [hosts]
   cross-depends:
@@ -145,20 +153,24 @@
     puppet_manifest: manifests/murano.pp
     puppet_modules: /etc/puppet/modules:modules
     timeout: 3600
-#  test_pre:
-#    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/murano/murano_pre.rb
-#  test_post:
-#    cmd: ruby /etc/puppet/modules/osnailyfacter/modular/murano/murano_post.rb
 
-- id: murano-rabbitmq
+- id: murano-node-rabbitmq
   type: puppet
-  groups: ['murano']
+  groups: ['primary-murano-node', 'murano-node']
   required_for: [murano-services]
-  cross-depends:
-    - name: /(primary-)?rabbitmq/
-      role: self
   requires: [hosts]
   parameters:
     puppet_manifest: manifests/murano_rabbitmq.pp
     puppet_modules: /etc/puppet/modules:modules
     timeout: 1800
+
+- id: murano-node-cfapi
+  type: puppet
+  groups: ['primary-murano-node', 'murano-node']
+  required_for: [deploy_end]
+  requires: [murano-services]
+  parameters:
+    puppet_manifest: manifests/murano_cfapi.pp
+    puppet_modules: /etc/puppet/modules:modules
+    timeout: 3600
+  condition: "settings:detach-murano.murano_cfapi.value == true"

@@ -1,6 +1,6 @@
 - name: additional_service:detach-murano
   description: "Murano is an application catalog, which allows application developers and cloud administrators to publish various cloud-ready applications in a browsable categorized catalog, which may be used by the cloud users (including the inexperienced ones) to pick-up the needed applications and services and composes the reliable environments out of them in a “push-the-button” manner."
-  label: "Install Murano"
+  label: "Install Murano plugin"
   compatible:
     - name: hypervisor:qemu
     - name: hypervisor:vmware
@@ -15,3 +15,5 @@
     - name: additional_service:sahara
     - name: additional_service:ceilometer
     - name: additional_service:ironic
+  incompatible:
+    - name: additional_service:murano

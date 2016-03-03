@@ -1,11 +1,13 @@
 notice('MURANO PLUGIN: logging-murano.pp')
 
+$content=':syslogtag, contains, "murano" -/var/log/murano-all.log\n
+### stop further processing for the matched entries\n
+& ~'
+
 include ::rsyslog::params
 
-file { "${::rsyslog::params::rsyslog_d}53-murano.conf":
-  ensure => present,
-  content => template('detach-murano/53-murano.conf.erb'),
-  notify  => Service[$::rsyslog::params::service_name],
+::rsyslog::snippet { '55-murano':
+  content => $content,
 }
 
 if !defined(Service[$::rsyslog::params::service_name]) {
@@ -15,7 +17,7 @@ if !defined(Service[$::rsyslog::params::service_name]) {
   }
 }
 
-File["${::rsyslog::params::rsyslog_d}53-murano.conf"] ~> Service[$::rsyslog::params::service_name]
+Rsyslog::Snippet['55-murano'] ~> Service[$::rsyslog::params::service_name]
 
 file_line { 'murano_logrotate':
   line  => "\"/var/log/murano/*.log\"",

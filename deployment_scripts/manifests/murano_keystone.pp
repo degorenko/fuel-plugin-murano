@@ -1,14 +1,12 @@
 notice('MURANO PLUGIN: murano_keystone.pp')
 
 $murano_hash       = hiera_hash('murano_hash', {})
-$murano_cfapi_hash = hiera_hash('murano-cfapi', {})
+$murano_cfapi_hash = hiera_hash('murano_cfapi_hash', {})
 $public_ip         = hiera('public_vip')
 $management_ip     = hiera('management_vip')
 $region            = hiera('region', 'RegionOne')
 $public_ssl_hash   = hiera('public_ssl')
 $ssl_hash          = hiera_hash('use_ssl', {})
-
-Class['::osnailyfacter::wait_for_keystone_backends'] -> Class['murano::keystone::auth']
 
 $public_protocol   = get_ssl_property($ssl_hash, $public_ssl_hash, 'murano', 'public', 'protocol', 'http')
 $public_address    = get_ssl_property($ssl_hash, $public_ssl_hash, 'murano', 'public', 'hostname', [$public_ip])
@@ -34,6 +32,8 @@ class { 'murano::keystone::auth':
   admin_url    => $admin_url,
 }
 
+Class['::osnailyfacter::wait_for_keystone_backends'] -> Class['murano::keystone::auth']
+
 if $murano_cfapi_hash['enabled'] {
   $cfapi_bind_port    = '8083'
   $cfapi_public_url   = "${public_protocol}://${public_address}:${cfapi_bind_port}"
@@ -42,7 +42,7 @@ if $murano_cfapi_hash['enabled'] {
 
   class { 'murano::keystone::cfapi_auth':
     password     => $murano_hash['user_password'],
-    service_type => 'service_broker',
+    service_type => 'service-broker',
     region       => $region,
     tenant       => $tenant,
     public_url   => $cfapi_public_url,

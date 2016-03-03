@@ -1,6 +1,10 @@
 attributes:
   metadata:
     group: 'openstack_services'
+    restrictions:
+      - condition: "settings:additional_components.murano.value == true"
+        message: "Murano plugin and Murano built in can't be used in one time."
+        action: "hide"
   murano_repo_url:
     value: "http://storage.apps.openstack.org/"
     label: "Murano Repository URL"
@@ -13,9 +17,15 @@ attributes:
     description: "If selected, Murano service broker will be installed"
     weight: 20
     type: "checkbox"
+    restrictions:
+      - condition: "settings:detach-murano.murano_glance_artifacts.value == true"
+        message: "Service Broker can't be deployed with Glance artifacts in the same time."
   murano_glance_artifacts:
     value: false
     label: "Enable glance artifact repository"
     description: "If selected glance artifact repository will be enabled"
     weight: 30
     type: "checkbox"
+    restrictions:
+      - condition: "settings:detach-murano.murano_cfapi.value == true"
+        message: "Glance artifacts can't be deployed with Service Broker in the same time."

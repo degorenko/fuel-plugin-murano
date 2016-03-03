@@ -7,7 +7,7 @@ $plugin_yaml = "${plugin_name}.yaml"
 
 if $detach_murano_plugin {
   $network_metadata           = hiera_hash('network_metadata')
-  $murano_nodes               = get_nodes_hash_by_roles($network_metadata, ['murano'])
+  $murano_nodes               = get_nodes_hash_by_roles($network_metadata, ['primary-murano-node', 'murano-node'])
   $murano_address_map         = get_node_to_ipaddr_map_by_network_role($murano_nodes, 'management')
   $murano_nodes_ips           = values($murano_address_map)
   $murano_nodes_names         = keys($murano_address_map)
@@ -18,12 +18,9 @@ if $detach_murano_plugin {
   $default_log_levels         = hiera('default_log_levels')
 
   # hardcode for now
-  $murano_db_password           = 'change_me'
-  $murano_cfapi_db_password     = 'change_me'
-  $murano_rabbit_password       = 'change_me'
-  $murano_cfapi_rabbit_password = 'change_me'
-  $murano_user_password         = 'change_me'
-  $murano_cfapi_user_password   = 'change_me'
+  $murano_db_password         = 'change_me'
+  $murano_rabbit_password     = 'change_me'
+  $murano_user_password       = 'change_me'
 
   ###################
   $calculated_content = inline_template('
@@ -49,9 +46,6 @@ murano_hash:
     glance_artifacts_plugin:
       enabled: <%= @murano_glance_artifacts %>
 murano_cfapi_hash:
-  db_password: <%= @murano_cfapi_db_password %>
-  rabbit_password: <%= @murano_cfapi_rabbit_password %>
-  user_password: <%= @murano_cfapi_user_password %>
   enabled: <%= @murano_cfapi_enabled %>
 syslog_log_facility_murano: <%= @syslog_log_facility_murano %>
 "murano::logging::default_log_levels":

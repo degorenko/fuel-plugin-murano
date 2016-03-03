@@ -4,6 +4,9 @@ $murano_hash     = hiera_hash('murano_hash', {})
 $murano_plugins  = $murano_hash['plugins']
 
 if $murano_plugins['glance_artifacts_plugin']['enabled'] {
+
+  include ::glance::params
+
   package {'murano-glance-artifacts-plugin':
     ensure  => installed,
   }
